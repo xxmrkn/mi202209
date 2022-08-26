@@ -1,0 +1,224 @@
+%%%
+%% v3.3 [2020/05/14]
+%\documentclass[Proof,technicalreport]{ieicej}
+\documentclass[technicalreport]{ieicej}
+\usepackage{graphicx}
+%\usepackage[fleqn]{amsmath}
+%\usepackage{amsthm}
+%\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{newtxtext}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{amssymb}
+%\usepackage[dvipdfmx]{graphicx}
+\usepackage[varg]{newtxmath}
+
+\usepackage{makecell}
+\renewcommand\theadalign{bc}
+\renewcommand\theadfont{\bfseries}
+\renewcommand\theadgape{\Gape[4pt]}
+\renewcommand\cellgape{\Gape[4pt]}
+
+\def\IEICEJcls{\texttt{ieicej.cls}}
+\def\IEICEJver{3.2}
+\newcommand{\AmSLaTeX}{%
+ $\mathcal A$\lower.4ex\hbox{$\!\mathcal M\!$}$\mathcal S$-\LaTeX}
+%\newcommand{\PS}{{\scshape Post\-Script}}
+\def\BibTeX{{\rmfamily B\kern-.05em{\scshape i\kern-.025em b}\kern-.08em
+ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125em X}}
+
+\jtitle{深層学習を用いたDigitally Reconstructed Radiographsに基づく変形性股関節症の多指標自動分類}
+%\jsubtitle{Vision Transformerを用いたHOAの多指標自動分類}
+\etitle{Automatic Multi-Measure Classification of Hip Osteoarthritis Based on Digitally Reconstructed Radiographs using Deep Learning}
+%\esubtitle{Automatic Multi-Measure Classification of HOA using Deep Learning}
+\authorlist{%
+ \authorentry[masuda.masachika.mp2@is.naist.jp]{桝田 修慎}{Masachika MASUDA}{Nara}% 
+ \authorentry[msoufi@is.naist.jp]{崇風　まあぜん}{Mazen SOUFI}{Nara}% 
+ \authorentry[otake@is.naist.jp]{大竹 義人}{Yoshito OTAKE}{Nara}% 
+ \authorentry[]{上村 圭亮}{Keisuke UEMURA}{Osaka}% 
+ \authorentry[]{高尾 正樹}{Masaki TAKAO}{Ehime}% 
+ \authorentry[]{菅野 伸彦}{Nobuhiko SUGANO}{Osaka}% 
+ \authorentry[yoshi@is.naist.jp]{佐藤 嘉伸}{Yoshinobu SATO}{Nara}% 
+}
+\affiliate[Nara]{奈良先端科学技術大学院大学\hskip1zw
+  〒630--0192 奈良県生駒市高山町8916--5}
+ {Nara Institute of Science and Technology\hskip1em
+  8916--5 Takayama--cho, Ikoma--shi, Nara,
+  601--0192 Japan}
+\affiliate[Osaka]{大阪大学\hskip1zw
+  〒565--0871 大阪府吹田市山田丘2--2}
+ {Osaka University\hskip1em
+  2--2 Yamadaoka, Suita-shi,
+  565--0871 Japan}
+\affiliate[Ehime]{愛媛大学\hskip1zw
+  〒791--0295 愛媛県東温市志津川454}
+ {Ehime University\hskip1em
+  454 Shitsukawa, Toon-shi,
+  791--0295 Japan}
+
+%\MailAddress{$\dagger$hanako@denshi.ac.jp,
+% $\dagger\dagger$\{taro,jiro\}@jouhou.co.jp}
+
+\begin{document}
+\begin{jabstract}
+変形性股関節症（HOA）は軟骨の変性により発生し，疼痛及び日常生活動作の低下に繋がる．HOAは通常，X線画像で診断され，診断の際には軟骨変性の程度に加え，寛骨臼からの大腿骨頭の転位（亜脱臼・脱臼）の程度も同時に評価する事が望まれる．近年，畳み込みニューラルネットワーク（CNN）を用いた自動分類手法が報告されたが，HOAは二値分類問題として扱われ，疾患の進行に伴う臨床的に重要な形状や輝度値の変化を表現することができていない．そこで本研究は，Digitally Reconstructed Radiograph（DRR）における疾患進行情報を含むHOAの自動分類器を開発することを目的とした．新規性は，Crowe分類（脱臼度）とKellgren-Lawrenceスコア（OA重症度）の２つの分類指標を同時に分類することにより，臨床的に重要な変動を表現する点である．深層学習に基づいた三つの分類器を評価し，モデルの不確実性を推定するために，テスト時のdropout samplingの影響も評価した．その結果，VisionTransformerはDenseNetとVGGより高い精度が得られた．
+\end{jabstract}
+\begin{jkeyword}
+深層学習，変形性股関節症, 不確実性
+\end{jkeyword}
+\begin{eabstract}
+Hip Osteoarthritis (HOA) is usually diagnosed by radiographs. In addition to the degree of cartilage degeneration, the degree of dislocation of the femoral head from the acetabulum (subluxation or dislocation) should also be evaluated. Recently, an automatic classification method using Convolutional Neural Networks (CNNs) has been reported; however, HOA diagnosis was addressed as a binary classification problem, therefore it was not able to represent clinically important changes in shape and intensity values with the disease progression. Therefore, the purpose of this study was to develop an automated HOA classification approach that incorporates information on disease progression based on Digitally-Reconstructed Radiographs (DRRs). The novelty is that it simultaneously classifies each DRR into two diagnostic measures, i.e., the Crowe classification (degree of dislocation) and the Kellgren-Lawrence score (OA severity), to represent clinically important changes. Three deep learning-based classifiers, i.e. VGG, DenseNet and ViT, were evaluated. The impact of involving dropout sampling at test-time for model uncertainty estimation was also evaluated. The ViT performance was superior to the other classifiers in terms of the two-measure classification accuracy.
+\end{eabstract}
+\begin{ekeyword}
+Deep Learning，Hip Osteoarthritis, Uncertainty
+\end{ekeyword}
+\maketitle
+
+\clearpage
+
+\section{まえがき}
+変形性股関節症(HOA)は現代の超高齢社会において，重要視されている疾患であり，多くの患者の疼痛や日常生活動作の低下を引き起こしている．
+HOAは通常，X線画像で診断され，詳細な疾患進行の評価は整形外科医の臨床専門性を必要とする．そのため，疫学研究において同様の分類を大規模データに対して行う際には，長時間の労力を必要とし，大きな負担になる．近年，画像認識手法の一つである畳み込みニューラルネットワーク(CNN)を用いた自動分類手法が報告されたが\cite{Gebre2021DetectingHO}，HOAは二値分類問題として扱われ，疾患の進行に伴う臨床的に重要な形状や輝度値の変化を評価することができていない．そこで，我々の研究では，脱臼度を示す指標であるCrowe分類と，OAの重要度を示すKellgren-Lawrenceスコア(KL)\cite{kellgren1957radiological}の2つの分類指標を同時に分類することにより，臨床的に重要な変動の表現を試みた．Crowe分類を組み合わせ，より細分化することは，疾患の進行具合をより正確に把握し，適切な手術計画の立案を可能にする．
+
+\section{手法}
+\label{sec:cls}
+\subsection{DRRデータセット}
+\label{sec:technicalreport}
+本研究では，大阪大学の保有する，股関節周辺のCT画像から作成されたDigitally Reconstructed Radiograph(DRR)の枚(症例)を用いた．これらの画像には整形外科医2名による診断に基づいたCroweとKLのラベルが1から4のグレードで付与されており，その組み合わせは7通り存在する． 表\ref{tb:dist}に組み合わせの種類とそのデータ数を示す．本来Crowe及びKLは0から4の5段階で評価されるが，0(正常)と1(疑いあり)の境界が曖昧なことから，本研究では除外している．図\ref{fig:ex}にラベルが付与された画像例を示す．
+
+\begin{table}[h]
+  \caption{CroweとKLの組み合わせ及びデータ数}
+  \label{tb:dist}
+  \centering
+  \begin{tabular}{c|c}\hline
+    クラス(ラベル) & データ数\\
+    \hline\hline
+    Crowe 1 / KL 1　(1) & 112\\\hline
+    Crowe 1 / KL 2　(2) & 59\\\hline
+    Crowe 1 / KL 3　(3) & 47\\\hline
+    Crowe 1 / KL 4　(4) & 141\\\hline
+    Crowe 2 / KL 4　(5) & 18\\\hline
+    Crowe 3 / KL 4　(6) & 14\\\hline
+    Crowe 4 / KL 4　(7) & 5\\\hline
+  \end{tabular}
+\end{table}
+
+
+\begin{figure}[t]
+\begin{center}
+\capwidth=60mm
+%\ecapwidth=60mm
+\vspace{70mm}
+\centering\hspace{-5cm}
+\includegraphics[width=0.21\linewidth]{figs/7class.png}
+\caption{7つのクラスの画像例}
+\label{fig:ex}
+%\ecaption{An example of caption.}
+\end{center}
+\end{figure}
+
+\subsection{深層学習モデル}
+本研究では三つの深層学習モデルを用いて自動分類を検証した．
+\subsubsection{Vision Transformer Base16}
+Vision Transformer(ViT)\cite{dosovitskiy2020image}はDosovitskiyらによって2020年に発表された画像認識モデルで，自然言語処理で用いられるTransformer\cite{vaswani2017attention}を画像認識に適用させたものである．具体的には，画像を複数のパッチに分割し，それぞれを単語のように線形に変換してAttention機構によって注目度を算出することで高度な画像解釈を可能にしている．また，大規模な事前学習が認識精度を向上させることが分かっており，JFT-300Mという3億枚のデータセットでの事前学習を行ったモデルは，当時のState-of-the-Artを達成した．
+
+\subsubsection{VGG16}
+VGG\cite{simonyan2014very}はCNNの一種で，3×3という小さいカーネルを用いた，16層及び19層の深いネットワークである．
+畳み込み層とプーリング層，線形層のシンプルなアーキテクチャであるにも関わらず，2014年のImageNetチャレンジのローカリゼーション・クラシフィケーションタスクで1位と2位を収めている．
+
+\subsubsection{DenseNet161}
+DenseNet\cite{huang2017densely}は複数のDense LayerとTransition Layerからなるネットワークで，各層の出力がすべての後続の層の入力に使われる特徴がある．これにより，勾配消失問題の緩和，特徴量の伝播の強化，パラメータ数削減などの様々な利点を持つ．
+
+\subsection{モデルの学習}
+モデルの学習は，股関節のDRR(396枚)によるPatient-wiseの4fold交差検証により行った．また，表\ref{tb:dist}から7つのクラスの学習データ数には大きな偏りがあることがわかるため，各foldに同じ比率でクラスを振り分けるために，Scikit-LearnのStratified-Group-KFoldを用いてfoldを作成した．各foldは3通り作成し，最後に集約することで総合的に評価した．また，データの分割は全データの75\%を訓練データ，25\%をテストデータとし，検証データは，訓練データをStratified-Group-KFoldで10分割し，その中の1foldを用いた．それぞれのモデルの重み初期化にはPyTorchの提供するライブラリであるtorchvisionのImageNetによる事前学習済みの重みを用い，ファインチューニングを行った．出力層の活性化関数はsoftmaxとし，損失関数はFocal Loss(gamma=2)，バッチサイズは32，学習率を$5\times10^{-5} ～3\times10^{-5}$とし，スケジューラにはCosine Annealingを用いた．最適化手法にはAdam\cite{kingma2014adam}を用い，学習時のデータ拡張は，画像の$224×224$へのリサイズ，ぼかし，ランダムコントラスト変化，ランダムドロップアウトを採用した．また学習のepoch数は200で，学習及び推論時のdropoutの確率はViTが0.1，VGGは0.3，DenseNetは0.2とした．また，ViTのdropout層はオリジナルの実装をそのまま使い，VGGはClassifierのdropout層に加え，特徴マップのサイズが変化する層のReLUの後ろにも追加した．DenseNetはDenseBlockの間にあるTransition層の後にそれぞれ追加した．そして，最終的な結果は，50回の推論結果の平均の最大値を分類の推定ラベル，分散を不確実性として出力を得た．
+
+\subsection{評価}
+\subsubsection{精度}
+4foldの交差検証によって分類精度の評価を行った，
+評価の指標として，Accuracyを用いた．この指標は正例と負例の関係から式(\ref{equation:1})によって計算される．
+
+\begin{equation}
+    Exact Class Accuracy = \frac{TP + TN}{TP+TN+FP+FN}
+    \label{equation:1}
+\end{equation}
+また，本研究では隣り合うクラス，すなわち一近傍誤差を許容したExact Class Accuracyも評価の対象とした．以降一近傍精度(1-Neighbor Class Accuracy)とする．
+\subsubsection{不確実性}
+不確実性の評価には、推論時にdropoutサンプリングを行うモンテカルロdropout\cite{https://doi.org/10.48550/arxiv.1506.02142}を用いた．
+本研究では，不確実性の指標として以下の二つを比較した．(1)推論時にdropoutを行わなかった場合のsoftmax probabilityの出力,(2)推論時のdropoutにより50回のサンプリングを行った出力の分散値．
+
+\section{結果}
+\subsection{分類精度}
+症例の変形性股関節症の分類精度を表\ref{tb:results}に示す．いずれのモデルも一近傍を含めた精度は0.9より大きく，特にViTは，二つの条件において，３つのモデルの中で最も高い精度を得た．
+
+\begin{table}[h]
+  \caption{自動分類結果}
+  \label{tb:results}
+  \scalebox{1.0}{
+  \hspace{23}\centering\begin{tabular}{c|c|c|c}
+    \thead {手法} & \thead {Test-time\\dropout} & \thead {Exact Class\\Accuracy$\pm$SD} & \thead {1-Neighbor Class\\ Accuracy$\pm$SD}\\
+    \hline
+    ViT & \times & 0.657$\pm$0.136 & 0.956$\pm$0.141\\
+    VGG & \times & 0.644$\pm$0.167 & 0.941$\pm$0.172\\
+    DenseNet & \times & 0.629$\pm$0.160 & 0.945$\pm$ 0.167\\
+    \hline
+    ViT & \checkmark & 0.661$\pm$0.133 & 0.962$\pm$0.139\\
+    VGG & \checkmark & 0.641$\pm$0,154 & 0.945$\pm$0.165\\
+    DenseNet & \checkmark & 0.616$\pm$0.153 & 0.948$\pm$0.159\\
+  \end{tabular}}
+\end{table}
+
+\subsection{不確実性の評価}
+test-time dropoutなしで推論回数が１回の時のボックスプロットを図\ref{fig:total_boxplot1}に，test-time dropoutありで推論を50回行った時のボックスプロットを図\ref{fig:total_boxplot2}に示す．なお，各予測クラスのボックスプロットの差が，統計的に意味を持つのかを確かめるために，2群の検定手法である，Mann-Whitney U Testを3つの組み合わせ，Exactと1-Neighbor，1 NeighborとOthers，ExactとOthersに対して実施した．その結果，test-time dropoutなしでの一回の推論で得られた結果は，ViT以外は正解，不正解のクラスに有意差があることがわかった．一方，test-time dropoutを有効にし，50回の推論を行った結果では，ViTに有意差があり，最も正解と不正解を確信をもって区別できていることがわかる．
+\begin{figure}[h]
+\capwidth=60mm
+%\ecapwidth=60mm
+\vspace{50mm}
+\hspace{5}
+\includegraphics[width=24]{figs/propability_1iter_boxplot3.png}
+\caption{test-time dropoutなしでの不確実性の評価結果（softmax probability）\\$n.s. \quad not-significant,\quad^{**}p<.01$}
+\label{fig:total_boxplot1}
+%\ecaption{An example of caption.}
+\end{figure}
+
+\begin{figure}[h]
+\capwidth=60mm
+%\ecapwidth=60mm
+\vspace{50mm}
+\includegraphics[width=35]{figs/variance_50iter_boxplot2.png}
+\caption{test-time dropoutありでの不確実性の評価結果（softmax probabilityの分散）\\$^{\dagger}p<.1,\quad^{*}p<.05,\quad^{**}p<.01$}
+\label{fig:total_boxplot2}
+%\ecaption{An example of caption.}
+\end{figure}
+
+\section{考察}
+本実験では，従来の研究の二値分類とは違い，Crowe指標を組み合わせて，さらにグレードを細分化した7クラスでの分類を行った．その結果，最も精度が高かったモデルであるVision Transformer\_Base16は，test-time dropoutを有効にした50回のベイズ推論の結果，Exact Class Accuracyが0.661$\pm$0.133，1-Neighbor Class Accuracyは0.962$\pm$0.139であった．そして，不確実性の評価から，不正解を最も分離できており，毎回の推論の予測のばらつきが小さいのもViTである．また，50回の推論を行い，Softmaxの平均の最大値を推定ラベルとした場合の外れ値として検出された，図\ref{fig:outlier}に示す二枚の画像は，CroweやKLの値が大きく，我々の目視では比較的容易に判別できるものの，モデルは正確に予測できていない．特に，脱臼の程度が酷い場合は，臼蓋から離れた位置にある大腿骨頭の位置を適切に認識する必要があるが，予測に失敗していることから，Multi-Head-Attentionにより大域的な情報を参照することが可能\cite{cordonnier2019relationship}なVisionTransoformerの性能が十分に発揮できていないと考えられる．
+そしてこの問題は，サンプル数の少ないクラスの十分な学習データや，その他の症例の大量のデータが集まれば解消すると考えられる．本実験よりも大きなデータベースでの検証を進め，汎化性能の向上を目指したい．
+
+\begin{figure}[h]
+\capwidth=60mm
+%\ecapwidth=60mm
+\vspace{35mm}
+\includegraphics[width=53]{figs/outlier_3.png}
+\caption{予測結果が実際の分類と2クラス以上異なった画像の例}
+\label{fig:outlier}
+%\ecaption{An example of caption.}
+\end{figure}
+
+\section{結論}
+本研究では，変形性股関節症のより詳細な進行具合を把握することを目的に，CroweとKLの多クラス分類を行った．その結果，三つの深層学習モデルでExact Accuracyが60\%以上，1-Neighbor Class Accuracyが90\%以上の分類精度が得られた．本研究で，198症例(396枚)の画像から，疾患を高精度で予測し，ベイズ推論を用いた不確実性の評価に成功したことは，今後，アノテーションが施されていない大規模なCTのデータベースに対するアクティブラーニングが可能なことを示している．予測に自信を持っていない症例を外れ値として，専門医にアノテーションを付与してもらい，学習データを増やして，再度学習する．このサイクルを繰り返すことで，アノテーションが施されていない大規模なデータベースのアノテーションに携わる医者の負担を減らすことができ，効率よく信頼性の高いデータベースを構築することが可能になる\cite{10.5555/3305381.3305504}と考えられる．
+
+
+
+%% \section{採録時のデータ提出}
+%% 削除
+
+%\begin{thebibliography}{99}
+
+%\end{thebibliography}
+
+\bibliographystyle{junsrt}%BibTeX を使う場合
+\bibliography{bibitem}%BibTeX を使う場合
+
+
+\end{document}
